@@ -8,7 +8,9 @@ env.resources.postgresql.privilege.with_grant_option = False
 
 class SqlMixin(object):
     def run_sql(self, sql):
-        run('psql template1 -c "{};"'.format(sql))
+        sql = sql.replace('"', '\\\\"')
+        runcmd = 'psql template1 -c "{};"'.format(sql)
+        run(runcmd)
 
 class Database(Resource):
     owner = None
@@ -59,7 +61,7 @@ class User(SqlMixin, Resource):
         attrs.append(self.createrole and 'CREATEROLE' or 'NOCREATEROLE')
         
         self.log('Ensuring postgresql user attributes for {}'.format(self.name))
-        sql = "ALTER USER {} WITH {};".format(self.name, ' '.join(attrs))
+        sql = 'ALTER USER "{}" WITH {}'.format(self.name, ' '.join(attrs))
         if not env.dry_run:
             self.run_sql(sql)
 
@@ -84,7 +86,7 @@ class Privilege(SqlMixin, Resource):
         # The simplest way to "ensure" the given privilege is to first revoke, then grant
         self.remove()
 
-        sql = "GRANT {} ON {} TO {}".format(self.name, self.object, self.user)
+        sql = 'GRANT {} ON {} TO "{}"'.format(self.name, self.object, self.user)
         if self.with_grant_option:
             sql = "{} WITH GRANT OPTION".format(sql)
         self.log('Granting postgresql privileges for {}'.format(self.user))
@@ -93,7 +95,7 @@ class Privilege(SqlMixin, Resource):
 
     def remove(self):
         self.log('Revoking postgresql privileges for {}'.format(self.user))
-        sql = "REVOKE {} ON {} FROM {};".format(self.name, self.object, self.user)
+        sql = 'REVOKE {} ON {} FROM "{}"'.format(self.name, self.object, self.user)
         if not env.dry_run:
             self.run_sql(sql)
 
