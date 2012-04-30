@@ -57,6 +57,10 @@ class Site(fs.File):
 
         if self.group is None:
             self.group = conf_defaults['group']
+        
+        nginx_user = env.resources.nginx.www_user
+        nginx_group = env.resources.nginx.www_group
+        fs.Directory(self.www_root, owner=nginx_user, group=nginx_group).ensure()
 
         if self.symlink_dir:
             symlink_dir = fs.Directory(self.symlink_dir, **conf_defaults)
@@ -69,8 +73,6 @@ class Site(fs.File):
         if not self.root:
             self.root = '{}/{}'.format(self.www_root, self.name)
         self.root = '/{}'.format(self.root.strip('/'))
-        nginx_user = env.resources.nginx.www_user
-        nginx_group = env.resources.nginx.www_group
         root_dir = fs.Directory(self.root, owner=nginx_user, group=nginx_group)
         root_dir.ensure()
 
