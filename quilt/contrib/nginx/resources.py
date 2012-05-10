@@ -12,6 +12,7 @@ env.resources.nginx.www_group = 'www-data'
 env.resources.nginx.site.conf_dir = '/etc/nginx/sites-available'
 env.resources.nginx.site.symlink_dir = '/etc/nginx/sites-enabled'
 env.resources.nginx.site.static_dirs = []
+env.resources.nginx.site.internal_static_dirs = []
 
 class Site(fs.File):
     template = 'site.conf'
@@ -21,6 +22,7 @@ class Site(fs.File):
     owner = None
     group = None
     static_dirs = None
+    internal_static_dirs = None
     upstreams = None
     aliases = None
     non_redirect_aliases = None
@@ -75,7 +77,7 @@ class Site(fs.File):
         self.root = '/{}'.format(self.root.strip('/'))
         root_dir = fs.Directory(self.root, owner=nginx_user, group=nginx_group)
         root_dir.ensure()
-
+        
         for i, dir in enumerate(self.static_dirs):
             dir = dir.strip('/')
             self.static_dirs[i] = dir
@@ -83,3 +85,9 @@ class Site(fs.File):
             static_dir = fs.Directory(dir_path, owner=root_dir.owner, group=root_dir.group)
             static_dir.ensure()
 
+        for i, dir in enumerate(self.internal_static_dirs):
+            dir = dir.strip('/')
+            self.internal_static_dirs[i] = dir
+            dir_path = '{}/{}'.format(self.root, dir)
+            static_dir = fs.Directory(dir_path, owner=root_dir.owner, group=root_dir.group)
+            static_dir.ensure()
