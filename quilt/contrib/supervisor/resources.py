@@ -20,8 +20,9 @@ env.resources.supervisor.program = DefaultAttributeDict({
     'stdout_logfile_maxsize': '250MB',
     'stdout_logfile_keep': 10,
     'stderr_logfile_maxsize': '250MB',
-    'strerr_logfile_keep': 10,
+    'stderr_logfile_keep': 10,
     'redirect_stderr': 'false',
+    'autostart': 'false'
 })
 
 class SupervisorConf(fs.File):
@@ -68,6 +69,7 @@ class Program(SupervisorConf):
     stderr_logfile = None
     stderr_logfile_maxsize = None
     strerr_logfile_keep = None
+    autostart = None
 
     template = 'program.conf'
 
