@@ -11,6 +11,7 @@ env.resources.fs.file.group = 'root'
 env.resources.fs.file.mode = 0644
 env.resources.fs.file.newlines = '\n'
 env.resources.fs.directory.mode = 0755
+env.resources.fs.directory.no_update = False
 
 class File(Resource):
     path = None
@@ -21,6 +22,7 @@ class File(Resource):
     mode = None
     target = None
     newlines = None
+    no_update = None
 
     directory = False
     symlink = False
@@ -95,7 +97,7 @@ class File(Resource):
                 # there's nothing else we can do
                 return 
         
-        if self.exists():
+        if self.exists() and not self.no_update:
             regular_file = not self.directory and not self.symlink
             if regular_file:
                 diff = self.diff()
@@ -117,6 +119,12 @@ class File(Resource):
 
             # check file mode
             current_mode = stat.S_IMODE(current_stat.st_mode)
+            # if our required mode does not specify setuid/setgid, then we don't
+            # care if the resource has it.
+            if not self.mode & stat.S_ISUID and current_mode & stat.S_ISUID:
+                current_mode = current_mode ^ stat.S_ISUID
+            if not self.mode & stat.S_ISGID and current_mode & stat.S_ISGID:
+                current_mode = current_mode ^ stat.S_ISGID
             if oct(current_mode) != oct(self.mode):
                 self.chmod(self.mode)
 
