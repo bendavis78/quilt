@@ -97,9 +97,9 @@ class File(Resource):
                 # there's nothing else we can do
                 return 
         
-        if self.exists() and not self.no_update:
+        if self.exists():
             regular_file = not self.directory and not self.symlink
-            if regular_file:
+            if regular_file and not self.no_update:
                 diff = self.diff()
                 if diff:
                     self.log('Updating file {}: \n{}'.format(self.path, diff))
